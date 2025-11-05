@@ -1,5 +1,10 @@
 # amm-uniswap
 
+A compact Anchor-based AMM (Automated Market Maker) for Solana that implements Uniswap V2's
+constant-product model (x * y = k). It provides pool initialization, LP minting, adding/removing
+liquidity and token swaps with fee handling and slippage protection. The program uses boxed
+accounts and the token-interface CPI helpers for broader token compatibility.
+
 Core logic as Uniswap V2's constant product formula (x \* y = k), including the fee calculation.
 
 ## Key Concepts
