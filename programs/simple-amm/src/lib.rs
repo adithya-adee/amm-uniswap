@@ -17,8 +17,8 @@ pub mod simple_amm {
         require!(fee_numerator < fee_denominator, AmmError::InvalidFee);
 
         let pool = &mut ctx.accounts.pool;
-        pool.token_a_mint = ctx.accounts.token_a_mint.key();
-        pool.token_b_mint = ctx.accounts.token_b_mint.key();
+        pool.token_a_mint = *ctx.accounts.token_a_mint.key;
+        pool.token_b_mint = *ctx.accounts.token_b_mint.key;
         pool.token_a_vault = ctx.accounts.token_a_vault.key();
         pool.token_b_vault = ctx.accounts.token_b_vault.key();
         pool.lp_mint = ctx.accounts.lp_mint.key();
@@ -322,8 +322,11 @@ pub struct InitializePool<'info> {
     )]
     pub pool: Account<'info, Pool>,
 
-    pub token_a_mint: Account<'info, Mint>,
-    pub token_b_mint: Account<'info, Mint>,
+    /// CHECK: This is safe because we only read the key
+    pub token_a_mint: UncheckedAccount<'info>,
+    
+    /// CHECK: This is safe because we only read the key
+    pub token_b_mint: UncheckedAccount<'info>,
 
     #[account(
         init,
@@ -483,5 +486,3 @@ impl IntegerSquareRoot for u128 {
         x
     }
 }
-
-
