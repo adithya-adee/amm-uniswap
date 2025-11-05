@@ -1,7 +1,9 @@
-use anchor_lang::prelude::*;
-use anchor_spl::token_interface;
 use crate::error::AmmError;
 use crate::state::*;
+use crate::util::IntegerSquareRoot;
+use anchor_lang::prelude::*;
+use anchor_spl::token_interface;
+use anchor_spl::token::ID as TOKEN_PROGRAM_ID;
 
 // Initialize a new liquidity pool
 pub fn initialize_pool(
@@ -9,10 +11,25 @@ pub fn initialize_pool(
     fee_numerator: u64,
     fee_denominator: u64,
 ) -> Result<()> {
+    // Fee Checks
     require!(fee_denominator > 0, AmmError::InvalidFee);
     require!(fee_numerator < fee_denominator, AmmError::InvalidFee);
 
+    // Security: ensure the supplied token program account is the SPL Token program
+    require_keys_eq!(
+        ctx.accounts.token_program.key(),
+        TOKEN_PROGRAM_ID,
+        AmmError::InvalidTokenProgram
+    );
+
     let pool = &mut ctx.accounts.pool;
+
+    // Check for Identical Mints
+    require!(
+        ctx.accounts.token_a_mint.key() != ctx.accounts.token_b_mint.key(),
+        AmmError::IdenticalMints
+    );
+
     pool.token_a_mint = ctx.accounts.token_a_mint.key();
     pool.token_b_mint = ctx.accounts.token_b_mint.key();
     pool.token_a_vault = ctx.accounts.token_a_vault.key();
@@ -34,7 +51,15 @@ pub fn add_liquidity(
 ) -> Result<()> {
     require!(amount_a > 0 && amount_b > 0, AmmError::InvalidAmount);
 
+    // Security: verify token program
+    require_keys_eq!(
+        ctx.accounts.token_program.key(),
+        TOKEN_PROGRAM_ID,
+        AmmError::InvalidTokenProgram
+    );
+
     let pool = &ctx.accounts.pool;
+
     let vault_a_amount = ctx.accounts.token_a_vault.amount;
     let vault_b_amount = ctx.accounts.token_b_vault.amount;
     let lp_supply = ctx.accounts.lp_mint.supply;
@@ -129,6 +154,13 @@ pub fn remove_liquidity(
 ) -> Result<()> {
     require!(lp_amount > 0, AmmError::InvalidAmount);
 
+    // Security: verify token program
+    require_keys_eq!(
+        ctx.accounts.token_program.key(),
+        TOKEN_PROGRAM_ID,
+        AmmError::InvalidTokenProgram
+    );
+
     let pool = &ctx.accounts.pool;
     let lp_supply = ctx.accounts.lp_mint.supply;
     let vault_a_amount = ctx.accounts.token_a_vault.amount;
@@ -216,6 +248,13 @@ pub fn swap(
     a_to_b: bool,
 ) -> Result<()> {
     require!(amount_in > 0, AmmError::InvalidAmount);
+
+    // Security: verify token program
+    require_keys_eq!(
+        ctx.accounts.token_program.key(),
+        TOKEN_PROGRAM_ID,
+        AmmError::InvalidTokenProgram
+    );
 
     let pool = &ctx.accounts.pool;
     let vault_a_amount = ctx.accounts.token_a_vault.amount;
@@ -319,21 +358,4 @@ pub fn swap(
     }
 
     Ok(())
-}
-
-// Helper trait for integer square root
-trait IntegerSquareRoot {
-    fn integer_sqrt(&self) -> Self;
-}
-
-impl IntegerSquareRoot for u128 {
-    fn integer_sqrt(&self) -> Self {
-        let mut x = *self;
-        let mut y = (x + 1) / 2;
-        while y < x {
-            x = y;
-            y = (x + self / x) / 2;
-        }
-        x
-    }
 }
