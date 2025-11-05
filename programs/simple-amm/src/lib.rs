@@ -17,8 +17,8 @@ pub mod simple_amm {
         require!(fee_numerator < fee_denominator, AmmError::InvalidFee);
 
         let pool = &mut ctx.accounts.pool;
-        pool.token_a_mint = *ctx.accounts.token_a_mint.key;
-        pool.token_b_mint = *ctx.accounts.token_b_mint.key;
+        pool.token_a_mint = ctx.accounts.token_a_mint.key();
+        pool.token_b_mint = ctx.accounts.token_b_mint.key();
         pool.token_a_vault = ctx.accounts.token_a_vault.key();
         pool.token_b_vault = ctx.accounts.token_b_vault.key();
         pool.lp_mint = ctx.accounts.lp_mint.key();
@@ -322,11 +322,9 @@ pub struct InitializePool<'info> {
     )]
     pub pool: Account<'info, Pool>,
 
-    /// CHECK: This is safe because we only read the key
-    pub token_a_mint: UncheckedAccount<'info>,
+    pub token_a_mint: Account<'info, Mint>,
     
-    /// CHECK: This is safe because we only read the key
-    pub token_b_mint: UncheckedAccount<'info>,
+    pub token_b_mint: Account<'info, Mint>,
 
     #[account(
         init,
@@ -357,7 +355,6 @@ pub struct InitializePool<'info> {
 
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>,
 }
 
 #[derive(Accounts)]
