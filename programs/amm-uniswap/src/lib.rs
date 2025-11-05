@@ -11,7 +11,7 @@ pub use state::*;
 declare_id!("7TykxzTrTubF6VV1or85oJLTjexauiW3nQHhsXXMFtRT");
 
 #[program]
-pub mod simple_amm {
+pub mod amm_uniswap {
     use super::*;
 
     pub fn initialize_pool(

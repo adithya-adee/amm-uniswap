@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { SimpleAmm } from "../target/types/simple_amm";
+import { AmmUniswap } from "../target/types/amm_uniswap";
 import {
   createAccount,
   createMint,
@@ -11,12 +11,12 @@ import {
 } from "@solana/spl-token";
 import { assert } from "chai";
 
-describe("simple-amm", () => {
+describe("amm-uniswap", () => {
   // Configure the client to use the local cluster.
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.simpleAmm as Program<SimpleAmm>;
+  const program = anchor.workspace.ammUniswap as Program<AmmUniswap>;
   const connection = provider.connection;
   const payer = provider.wallet as anchor.Wallet;
 
